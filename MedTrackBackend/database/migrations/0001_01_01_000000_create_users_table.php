@@ -13,7 +13,21 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->string('first_name');
+            $table->string('last_name');
+
+            $table->enum('role', ['superadmin', 'doctor', 'patient']);
+            //fields for patients only
+            $table->enum('gender', ['male', 'female'])->nullable();
+            $table->date('date_of_birth')->nullable();
+            $table->string('city')->nullable();
+            $table->string('address')->nullable();
+            //fields for doctors only
+            $table->enum('doctor_type', [
+                'kardiolog', 'neurolog', 'ortoped', 'dermatolog', 'pedijatar',
+                'hirurg', 'oftalmolog', 'gastroenterolog', 'pulmolog', 'psihijatar'
+            ])->nullable();
+
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
