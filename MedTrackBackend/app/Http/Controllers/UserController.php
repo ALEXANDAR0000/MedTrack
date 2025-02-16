@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 
 class UserController extends Controller
 {
@@ -124,6 +125,43 @@ class UserController extends Controller
         $user->delete();
 
         return response()->json(['message' => 'User deleted successfully']);
+    }
+    /**
+     * Update patient profile
+     */
+    public function updatePatientProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        $fields = $request->validate([
+            'first_name' => 'sometimes|string|max:255',
+            'last_name' => 'sometimes|string|max:255',
+            'email' => 'sometimes|email|unique:users,email,' . $user->id,
+            'gender' => 'sometimes|in:male,female',
+            'date_of_birth' => 'sometimes|date',
+            'city' => 'sometimes|string|max:255',
+            'address' => 'sometimes|string|max:255',
+            'password' => 'sometimes|string|min:6',
+        ]);
+
+        if (isset($fields['password'])) {
+            $fields['password'] = Hash::make($fields['password']);
+        }
+
+        $user->update($fields);
+
+        return response()->json(['message' => 'Profile updated successfully', 'user' => $user]);
+    }
+
+    /**
+     * Delete patient profile
+     */
+    public function deleteMyAccount()
+    {
+        $user = Auth::user();
+        $user->delete();
+
+        return response()->json(['message' => 'Your account has been deleted successfully.']);
     }
 }
     /**

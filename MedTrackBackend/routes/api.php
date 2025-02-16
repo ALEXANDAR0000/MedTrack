@@ -34,7 +34,7 @@ Route::middleware(['auth:sanctum', 'role:patient'])->group(function () {
     Route::get('/appointments', [AppointmentController::class, 'getMyAppointments']);
     Route::delete('/appointments/{id}', [AppointmentController::class, 'cancelAppointment']);
     Route::get('/appointments/available/{doctor_id}/{date}', [AppointmentController::class, 'getAvailableAppointments']);
-    Route::get('/prescriptions/{appointment_id}', [AppointmentController::class, 'getPrescription']);
+    Route::get('/prescriptions/{appointment_id}', [PrescriptionController::class, 'getPrescription']);
     Route::put('/profile', [UserController::class, 'updatePatientProfile']);
     Route::delete('/profile/delete', [UserController::class, 'deleteMyAccount']);
 });
