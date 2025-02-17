@@ -74,6 +74,111 @@ class AppointmentController extends Controller
 
         return response()->json(['available_slots' => array_values($availableAppointments)]);
     }
+    /**
+     * Shows doctor all his appointments
+     */
+    public function getDoctorAppointments()
+    {
+        $appointments = Appointment::where('doctor_id', Auth::id())->get();
+        return response()->json($appointments);
+    }
+     /**
+     * Update appointment status
+     */
+    public function updateAppointmentStatus(Request $request, $id)
+    {
+        $request->validate([
+            'status' => 'required|in:approved,rejected',
+        ]);
+
+        $appointment = Appointment::where('id', $id)->where('doctor_id', Auth::id())->firstOrFail();
+        
+        if ($appointment->status !== 'pending') {
+            return response()->json(['message' => 'Only pending appointments can be updated.'], 403);
+        }
+
+        $appointment->status = $request->status;
+        $appointment->save();
+
+        return response()->json(['message' => 'Appointment status updated successfully.', 'appointment' => $appointment]);
+    }
+    /**
+     * Start appointment
+     */
+    public function startAppointment($id)
+    {
+        $appointment = Appointment::where('id', $id)->where('doctor_id', Auth::id())->firstOrFail();
+
+        if ($appointment->status !== 'approved') {
+            return response()->json(['message' => 'Only approved appointments can be started.'], 403);
+        }
+
+        $appointment->status = 'in_progress';
+        $appointment->save();
+
+        return response()->json(['message' => 'Appointment started.', 'appointment' => $appointment]);
+    }
+
+    /**
+     * Finish appointment
+     */
+    public function finishAppointment(Request $request, $id)
+    {
+        $appointment = Appointment::where('id', $id)->where('doctor_id', Auth::id())->firstOrFail();
+
+        if ($appointment->status !== 'in_progress') {
+            return response()->json(['message' => 'Only in-progress appointments can be finished.'], 403);
+        }
+
+        $request->validate([
+            'notes' => 'required|string',
+            'prescription' => 'required|string',
+        ]);
+
+        MedicalRecord::create([
+            'patient_id' => $appointment->patient_id,
+            'notes' => $request->notes,
+        ]);
+
+        Prescription::create([
+            'appointment_id' => $appointment->id,
+            'doctor_id' => Auth::id(),
+            'details' => $request->prescription,
+        ]);
+
+        $appointment->status = 'completed';
+        $appointment->save();
+
+        return response()->json(['message' => 'Appointment completed.', 'appointment' => $appointment]);
+    }
+
+    /**
+     * Mark as NoShow
+     */
+    public function markAsNoShow($id)
+    {
+        $appointment = Appointment::where('id', $id)->where('doctor_id', Auth::id())->firstOrFail();
+
+        if ($appointment->status !== 'approved') {
+            return response()->json(['message' => 'Only approved appointments can be marked as no-show.'], 403);
+        }
+
+        MedicalRecord::create([
+            'patient_id' => $appointment->patient_id,
+            'notes' => 'Patient did not show up for the appointment.',
+        ]);
+
+        Prescription::create([
+            'appointment_id' => $appointment->id,
+            'doctor_id' => Auth::id(),
+            'details' => 'No prescription issued. Patient was absent.',
+        ]);
+
+        $appointment->status = 'no_show';
+        $appointment->save();
+
+        return response()->json(['message' => 'Appointment marked as no-show.', 'appointment' => $appointment]);
+    }
 }
   // /**
     //  * Display a listing of the resource.

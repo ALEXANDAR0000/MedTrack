@@ -49,6 +49,8 @@ Route::middleware(['auth:sanctum', 'role:doctor'])->group(function () {
     Route::get('/patients/{id}/medical-records', [MedicalRecordController::class, 'getPatientMedicalRecord']);
     Route::post('/patients/{id}/medical-records', [MedicalRecordController::class, 'addMedicalRecord']);
     Route::delete('/medical-records/{id}', [MedicalRecordController::class, 'deleteMedicalRecord']);
+    Route::post('/patients/{id}/prescriptions', [PrescriptionController::class, 'addPrescription']);
+    Route::delete('/prescriptions/{id}', [PrescriptionController::class, 'deletePrescription']);
 });
 
 
