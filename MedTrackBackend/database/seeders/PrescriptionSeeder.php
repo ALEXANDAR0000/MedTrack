@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\Prescription;
 
 class PrescriptionSeeder extends Seeder
 {
@@ -12,6 +12,6 @@ class PrescriptionSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        Prescription::factory(20)->create();
     }
 }
