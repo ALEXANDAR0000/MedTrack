@@ -13,7 +13,7 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // Kreiranje admin korisnika
+        // Create admin 
         User::create([
             'first_name' => 'Admin',
             'last_name' => 'Admin',
@@ -22,7 +22,7 @@ class UserSeeder extends Seeder
             'password' => Hash::make('admin123'),
         ]);
 
-        // Kreiranje pacijenata i doktora
+        // Create patient and doctors
         User::factory(10)->create();
     }
 }

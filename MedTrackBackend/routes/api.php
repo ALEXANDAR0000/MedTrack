@@ -8,9 +8,9 @@ use App\Http\Controllers\MedicalRecordController;
 use App\Http\Controllers\PrescriptionController;
 use Illuminate\Support\Facades\Route;
 
-// Route::get('/user', function (Request $request) {
-//     return $request->user();
-// })->middleware('auth:sanctum');
+Route::get('/user', function (Request $request) {
+    return $request->user();
+})->middleware('auth:sanctum');
 
 //Public api routes for login and registration
 Route::post('/register', [AuthController::class, 'register']); 
