@@ -26,6 +26,24 @@ class UserController extends Controller
         return response()->json($patients);
     }
     /**
+    * Show one doctor by ID
+    */
+    public function getDoctor($id)
+    {
+    $doctor = User::where('role', 'doctor')->findOrFail($id);
+    return response()->json($doctor);
+    }
+
+    /**
+    * Show one patient by ID
+    */
+    public function getPatient($id)
+    {
+    $patient = User::where('role', 'patient')->findOrFail($id);
+    return response()->json($patient);
+    }
+
+    /**
      * Create new doctor
      */
     public function createDoctor(Request $request)

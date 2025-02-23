@@ -17,16 +17,19 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
-//Admin routes
+// Admin routes
 Route::middleware(['auth:sanctum', 'role:admin'])->group(function () {
     Route::get('/admin/doctors', [UserController::class, 'getAllDoctors']);
     Route::get('/admin/patients', [UserController::class, 'getAllPatients']);
+    Route::get('/admin/doctors/{id}', [UserController::class, 'getDoctor']);
+    Route::get('/admin/patients/{id}', [UserController::class, 'getPatient']);
     Route::post('/admin/doctors', [UserController::class, 'createDoctor']);
     Route::post('/admin/patients', [UserController::class, 'createPatient']);
     Route::put('/admin/doctors/{id}', [UserController::class, 'updateDoctor']);
     Route::put('/admin/patients/{id}', [UserController::class, 'updatePatient']);
     Route::delete('/admin/users/{id}', [UserController::class, 'deleteUser']);
 });
+
 
 //Patient routes
 Route::middleware(['auth:sanctum', 'role:patient'])->group(function () {

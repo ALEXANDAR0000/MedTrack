@@ -38,6 +38,18 @@ export default function Layout() {
                 {user.first_name} {user.last_name} -{" "}
                 <span className="text-blue-400 font-bold">{user.role}</span>
               </p>
+              {/* If admin is loged */}
+              {user.role === "admin" && (
+                <div className="flex space-x-4">
+                  <Link to="/admin/patients" className="nav-link">
+                    Patients
+                  </Link>
+                  <Link to="/admin/doctors" className="nav-link">
+                    Doctors
+                  </Link>
+                </div>
+              )}
+              {/* If admin is loged */}
               <form onSubmit={handleLogout}>
                 <button className="nav-link">Logout</button>
               </form>
