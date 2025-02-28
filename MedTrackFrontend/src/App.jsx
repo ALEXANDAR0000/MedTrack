@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 import Layout from "./Pages/Layout";
 import Home from "./Pages/Home";
@@ -24,8 +24,8 @@ export default function App() {
           <Route path="/register" element={user ? <Home /> : <Register />} />
           <Route path="/login" element={user ? <Home /> : <Login />} />
 
-          {/* ADMIN ROUTES - dodajemo samo ako je user admin */}
-          {user && user.role === "admin" && (
+          {/* Admin routes */}
+          {user && user.role === "admin" ? (
             <>
               <Route path="/admin/patients" element={<Patients />} />
               <Route path="/admin/doctors" element={<Doctors />} />
@@ -40,6 +40,19 @@ export default function App() {
                 element={<UpdateDoctor />}
               />
             </>
+          ) : null}
+
+          {/* Patient routes */}
+          {user && user.role === "patient" ? <></> : null}
+
+          {/* Doctor routes */}
+          {user && user.role === "doctor" ? <></> : null}
+
+          {!user && (
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          )}
+          {user && !["admin", "patient", "doctor"].includes(user.role) && (
+            <Route path="*" element={<Navigate to="/" replace />} />
           )}
         </Route>
       </Routes>
