@@ -10,8 +10,12 @@ import AddPatient from "./Pages/Admin/AddPatient";
 import AddDoctor from "./Pages/Admin/AddDoctor";
 import UpdatePatient from "./Pages/Admin/UpdatePatient";
 import UpdateDoctor from "./Pages/Admin/UpdateDoctor";
+import MyProfile from "./Pages/Patients/MyProfile";
+import MyAppointments from "./Pages/Patients/MyAppointments";
+import ScheduleAppointment from "./Pages/Patients/ScheduleAppointment";
 import { useContext } from "react";
 import { AppContext } from "./Context/AppContext";
+import EditMyProfile from "./Pages/Patients/EditMyProfile";
 
 export default function App() {
   const { user } = useContext(AppContext);
@@ -43,7 +47,20 @@ export default function App() {
           ) : null}
 
           {/* Patient routes */}
-          {user && user.role === "patient" ? <></> : null}
+          {user && user.role === "patient" ? (
+            <>
+              <Route path="/patient/profile" element={<MyProfile />} />
+              <Route path="/patient/profile/edit" element={<EditMyProfile />} />
+              <Route
+                path="/patient/appointments"
+                element={<MyAppointments />}
+              />
+              <Route
+                path="/patient/schedule"
+                element={<ScheduleAppointment />}
+              />
+            </>
+          ) : null}
 
           {/* Doctor routes */}
           {user && user.role === "doctor" ? <></> : null}

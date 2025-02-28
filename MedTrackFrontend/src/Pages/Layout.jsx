@@ -38,7 +38,8 @@ export default function Layout() {
                 {user.first_name} {user.last_name} -{" "}
                 <span className="text-blue-400 font-bold">{user.role}</span>
               </p>
-              {/* If admin is loged */}
+
+              {/* Admin navigation */}
               {user.role === "admin" && (
                 <div className="flex space-x-4">
                   <Link to="/admin/patients" className="nav-link">
@@ -49,7 +50,22 @@ export default function Layout() {
                   </Link>
                 </div>
               )}
-              {/* If admin is loged */}
+
+              {/* Patient navigation */}
+              {user.role === "patient" && (
+                <div className="flex space-x-4">
+                  <Link to="/patient/schedule" className="nav-link">
+                    Schedule Appointment
+                  </Link>
+                  <Link to="/patient/appointments" className="nav-link">
+                    My Appointments
+                  </Link>
+                  <Link to="/patient/profile" className="nav-link">
+                    My Profile
+                  </Link>
+                </div>
+              )}
+
               <form onSubmit={handleLogout}>
                 <button className="nav-link">Logout</button>
               </form>
