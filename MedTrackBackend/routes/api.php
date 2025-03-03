@@ -57,11 +57,3 @@ Route::middleware(['auth:sanctum', 'role:doctor'])->group(function () {
     Route::delete('/prescriptions/{id}', [PrescriptionController::class, 'deletePrescription']);
 });
 
-
-
-//routes for CRUD operations
-// Route::apiResource('users', UserController::class);
-// Route::apiResource('appointments', AppointmentController::class);
-// Route::apiResource('medical-records', MedicalRecordController::class);
-// Route::apiResource('prescriptions', PrescriptionController::class);
-
