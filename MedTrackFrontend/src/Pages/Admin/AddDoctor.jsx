@@ -100,16 +100,16 @@ export default function AddDoctor() {
             className="input-field"
           >
             <option value="">Select Specialization</option>
-            <option value="kardiolog">Kardiolog</option>
-            <option value="neurolog">Neurolog</option>
-            <option value="ortoped">Ortoped</option>
-            <option value="dermatolog">Dermatolog</option>
-            <option value="pedijatar">Pedijatar</option>
-            <option value="hirurg">Hirurg</option>
-            <option value="oftalmolog">Oftalmolog</option>
-            <option value="gastroenterolog">Gastroenterolog</option>
-            <option value="pulmolog">Pulmolog</option>
-            <option value="psihijatar">Psihijatar</option>
+            <option value="cardiologist">Cardiologist</option>
+            <option value="neurologist">Neurologist</option>
+            <option value="orthopedic">Orthopedic</option>
+            <option value="dermatologist">Dermatologist</option>
+            <option value="pediatrician">Pediatrician</option>
+            <option value="surgeon">Surgeon</option>
+            <option value="ophthalmologist">Ophthalmologist</option>
+            <option value="gastroenterologist">Gastroenterologist</option>
+            <option value="pulmonologist">Pulmonologist</option>
+            <option value="psychiatrist">Psychiatrist</option>
           </select>
           {errors.doctor_type && <p className="error">{errors.doctor_type}</p>}
         </div>

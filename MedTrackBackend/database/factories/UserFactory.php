@@ -21,7 +21,7 @@ class UserFactory extends Factory
     {
         $roles = ['patient', 'doctor'];
         $role = fake()->randomElement($roles);
-        $doctorTypes = ['kardiolog', 'neurolog', 'ortoped', 'dermatolog', 'pedijatar', 'hirurg', 'oftalmolog', 'gastroenterolog', 'pulmolog', 'psihijatar'];
+        $doctorTypes = ['cardiologist', 'neurologist', 'orthopedic', 'dermatologist', 'pediatrician', 'surgeon', 'ophthalmologist', 'gastroenterologist', 'pulmonologist', 'psychiatrist'];
 
         return [
             'first_name' => fake()->firstName(),

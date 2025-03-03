@@ -53,7 +53,7 @@ class UserController extends Controller
             'last_name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:6',
-            'doctor_type' => 'required|in:kardiolog,neurolog,ortoped,dermatolog,pedijatar,hirurg,oftalmolog,gastroenterolog,pulmolog,psihijatar',
+            'doctor_type' => 'required|in:cardiologist,neurologist,orthopedic,dermatologist,pediatrician,surgeon,ophthalmologist,gastroenterologist,pulmonologist,psychiatrist',
         ]);
 
         $doctor = User::create([
@@ -108,7 +108,7 @@ class UserController extends Controller
             'first_name' => 'sometimes|string|max:255',
             'last_name' => 'sometimes|string|max:255',
             'email' => 'sometimes|email|unique:users,email,' . $id,
-            'doctor_type' => 'sometimes|in:kardiolog,neurolog,ortoped,dermatolog,pedijatar,hirurg,oftalmolog,gastroenterolog,pulmolog,psihijatar',
+            'doctor_type' => 'sometimes|in:cardiologist,neurologist,orthopedic,dermatologist,pediatrician,surgeon,ophthalmologist,gastroenterologist,pulmonologist,psychiatrist',
         ]);
 
         $doctor->update($fields);
@@ -214,7 +214,7 @@ class UserController extends Controller
     //     //doctor validation
     //     if ($request->role === 'doctor') {
     //         $request->validate([
-    //             'doctor_type' => 'required|in:kardiolog,neurolog,ortoped,dermatolog,pedijatar,hirurg,oftalmolog,gastroenterolog,pulmolog,psihijatar',
+     //          'doctor_type' => 'required|in:cardiologist,neurologist,orthopedic,dermatologist,pediatrician,surgeon,ophthalmologist,gastroenterologist,pulmonologist,psychiatrist',
     //         ]);
     //     }
     //     $user = User::create([
@@ -263,7 +263,7 @@ class UserController extends Controller
     //     }
     //     if ($user->role === 'doctor') {
     //         $request->validate([
-    //             'doctor_type' => 'in:kardiolog,neurolog,ortoped,dermatolog,pedijatar,hirurg,oftalmolog,gastroenterolog,pulmolog,psihijatar',
+        //'doctor_type' => 'required|in:cardiologist,neurologist,orthopedic,dermatologist,pediatrician,surgeon,ophthalmologist,gastroenterologist,pulmonologist,psychiatrist',
     //         ]);
     //     }
     //     $user->update($request->only([

@@ -24,9 +24,10 @@ return new class extends Migration
             $table->string('address')->nullable();
             //fields for doctors only
             $table->enum('doctor_type', [
-                'kardiolog', 'neurolog', 'ortoped', 'dermatolog', 'pedijatar',
-                'hirurg', 'oftalmolog', 'gastroenterolog', 'pulmolog', 'psihijatar'
+                'cardiologist', 'neurologist', 'orthopedic', 'dermatologist', 'pediatrician',
+                'surgeon', 'ophthalmologist', 'gastroenterologist', 'pulmonologist', 'psychiatrist'
             ])->nullable();
+            
 
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();

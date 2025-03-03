@@ -28,58 +28,59 @@ export default function Layout() {
     <>
       <header>
         <nav className="flex justify-between items-center p-4 bg-gray-800 text-white">
-          <Link to="/" className="nav-link">
-            Home
-          </Link>
-
           {user ? (
-            <div className="flex items-center space-x-4">
-              <p className="text-slate-400 text-xs">
-                {user.first_name} {user.last_name} -{" "}
-                <span className="text-blue-400 font-bold">{user.role}</span>
-              </p>
+            <p className="text-slate-400 text-xs">
+              {user.first_name} {user.last_name} -{" "}
+              <span className="text-blue-400 font-bold">{user.role}</span>
+            </p>
+          ) : (
+            <div></div>
+          )}
+          <div className="flex items-center space-x-4">
+            <Link to="/" className="nav-link">
+              Home
+            </Link>
+            {/* Admin */}
+            {user?.role === "admin" && (
+              <>
+                <Link to="/admin/patients" className="nav-link">
+                  Patients
+                </Link>
+                <Link to="/admin/doctors" className="nav-link">
+                  Doctors
+                </Link>
+              </>
+            )}
 
-              {/* Admin navigation */}
-              {user.role === "admin" && (
-                <div className="flex space-x-4">
-                  <Link to="/admin/patients" className="nav-link">
-                    Patients
-                  </Link>
-                  <Link to="/admin/doctors" className="nav-link">
-                    Doctors
-                  </Link>
-                </div>
-              )}
-
-              {/* Patient navigation */}
-              {user.role === "patient" && (
-                <div className="flex space-x-4">
-                  <Link to="/patient/schedule" className="nav-link">
-                    Schedule Appointment
-                  </Link>
-                  <Link to="/patient/appointments" className="nav-link">
-                    My Appointments
-                  </Link>
-                  <Link to="/patient/profile" className="nav-link">
-                    My Profile
-                  </Link>
-                </div>
-              )}
-
+            {/* Patient */}
+            {user?.role === "patient" && (
+              <>
+                <Link to="/patient/schedule" className="nav-link">
+                  Schedule Appointment
+                </Link>
+                <Link to="/patient/appointments" className="nav-link">
+                  My Appointments
+                </Link>
+                <Link to="/patient/profile" className="nav-link">
+                  My Profile
+                </Link>
+              </>
+            )}
+            {user ? (
               <form onSubmit={handleLogout}>
                 <button className="nav-link">Logout</button>
               </form>
-            </div>
-          ) : (
-            <div className="space-x-4">
-              <Link to="/register" className="nav-link">
-                Register
-              </Link>
-              <Link to="/login" className="nav-link">
-                Login
-              </Link>
-            </div>
-          )}
+            ) : (
+              <>
+                <Link to="/register" className="nav-link">
+                  Register
+                </Link>
+                <Link to="/login" className="nav-link">
+                  Login
+                </Link>
+              </>
+            )}
+          </div>
         </nav>
       </header>
       <main>
