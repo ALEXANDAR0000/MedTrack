@@ -66,6 +66,21 @@ export default function Layout() {
                 </Link>
               </>
             )}
+            {/* Doctor */}
+            {user?.role === "doctor" && (
+              <>
+                <Link to="/doctor/inbox" className="nav-link">
+                  Inbox
+                </Link>
+                <Link to="/doctor/appointments" className="nav-link">
+                  Appointments
+                </Link>
+                <Link to="/doctor/medical-records" className="nav-link">
+                  Medical Records
+                </Link>
+              </>
+            )}
+
             {user ? (
               <form onSubmit={handleLogout}>
                 <button className="nav-link">Logout</button>

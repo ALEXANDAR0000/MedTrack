@@ -16,6 +16,9 @@ import ScheduleAppointment from "./Pages/Patients/ScheduleAppointment";
 import { useContext } from "react";
 import { AppContext } from "./Context/AppContext";
 import EditMyProfile from "./Pages/Patients/EditMyProfile";
+import Inbox from "./Pages/Doctors/Inbox";
+import Appointments from "./Pages/Doctors/Appointments";
+import MedicalRecords from "./Pages/Doctors/MedicalRecords";
 
 export default function App() {
   const { user } = useContext(AppContext);
@@ -63,7 +66,16 @@ export default function App() {
           ) : null}
 
           {/* Doctor routes */}
-          {user && user.role === "doctor" ? <></> : null}
+          {user && user.role === "doctor" ? (
+            <>
+              <Route path="/doctor/inbox" element={<Inbox />} />
+              <Route path="/doctor/appointments" element={<Appointments />} />
+              <Route
+                path="/doctor/medical-records"
+                element={<MedicalRecords />}
+              />
+            </>
+          ) : null}
 
           {!user && (
             <Route path="*" element={<Navigate to="/login" replace />} />
