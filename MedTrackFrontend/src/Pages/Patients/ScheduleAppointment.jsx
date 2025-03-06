@@ -36,23 +36,28 @@ export default function ScheduleAppointment() {
     }
 
     async function fetchDoctors() {
-      const res = await fetch("/api/doctors", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      try {
+        const res = await fetch("/api/doctors", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-      if (!res.ok) {
-        console.error("Failed to fetch doctors");
-        return;
+        if (!res.ok) {
+          console.error("Failed to fetch doctors");
+          return;
+        }
+
+        const data = await res.json();
+        setDoctors(data.filter((doc) => doc.doctor_type === selectedType));
+        setSelectedDoctor(null);
+      } catch (error) {
+        console.error("Error:", error);
       }
-
-      const data = await res.json();
-      setDoctors(data.filter((doc) => doc.doctor_type === selectedType));
-      setSelectedDoctor(null);
     }
 
     fetchDoctors();
   }, [selectedType, token]);
 
+  // Dohvati dostupne slotove (termine)
   useEffect(() => {
     if (!selectedDoctor || !date) {
       setAvailableSlots([]);
@@ -60,21 +65,25 @@ export default function ScheduleAppointment() {
     }
 
     async function fetchAvailableSlots() {
-      const res = await fetch(
-        `/api/appointments/available/${selectedDoctor.id}/${date}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
+      try {
+        const res = await fetch(
+          `/api/appointments/available/${selectedDoctor.id}/${date}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (!res.ok) {
+          console.error("Failed to fetch available slots");
+          return;
         }
-      );
 
-      if (!res.ok) {
-        console.error("Failed to fetch available slots");
-        return;
+        const data = await res.json();
+        setAvailableSlots(data.available_slots);
+        setSelectedSlot("");
+      } catch (error) {
+        console.error("Error:", error);
       }
-
-      const data = await res.json();
-      setAvailableSlots(data.available_slots);
-      setSelectedSlot("");
     }
 
     fetchAvailableSlots();
@@ -83,27 +92,62 @@ export default function ScheduleAppointment() {
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
+    setErrors({});
 
-    const appointmentDate = `${date}T${selectedSlot}:00`;
+    const localErrors = {};
 
-    const res = await fetch("/api/appointments", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        doctor_id: selectedDoctor.id,
-        date: appointmentDate,
-      }),
-    });
+    if (!selectedType) {
+      localErrors.type = "Please select a doctor type.";
+    }
+    if (!selectedDoctor) {
+      localErrors.doctor_id = "Please select a doctor.";
+    }
+    if (!date) {
+      localErrors.date = "Please select a date.";
+    }
+    if (!selectedSlot) {
+      localErrors.slot = "Please select a time slot.";
+    }
 
-    const data = await res.json();
+    if (Object.keys(localErrors).length > 0) {
+      setErrors(localErrors);
+      setLoading(false);
+      return;
+    }
 
-    if (res.ok) {
+    const localDate = new Date(`${date}T${selectedSlot}:00`);
+    const utcDate = new Date(
+      localDate.getTime() - localDate.getTimezoneOffset() * 60000
+    ).toISOString();
+
+    try {
+      const res = await fetch("/api/appointments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          doctor_id: selectedDoctor.id,
+          date: utcDate,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (data?.errors) {
+          setErrors(data.errors);
+        } else {
+          console.error("Unknown error scheduling appointment:", data);
+        }
+        setLoading(false);
+        return;
+      }
+
       navigate("/patient/appointments");
-    } else {
-      setErrors(data.errors || {});
+    } catch (error) {
+      console.error("Error scheduling appointment:", error);
     }
 
     setLoading(false);
@@ -112,6 +156,7 @@ export default function ScheduleAppointment() {
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <h1 className="title text-center">Schedule Appointment</h1>
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label>Doctor Type:</label>
@@ -127,9 +172,8 @@ export default function ScheduleAppointment() {
               </option>
             ))}
           </select>
-          {errors.doctor_type && <p className="error">{errors.doctor_type}</p>}
+          {errors.type && <p className="error">{errors.type}</p>}
         </div>
-
         <div>
           <label>Doctor:</label>
           <select
@@ -151,7 +195,6 @@ export default function ScheduleAppointment() {
           </select>
           {errors.doctor_id && <p className="error">{errors.doctor_id}</p>}
         </div>
-
         <div>
           <label>Date:</label>
           <input
@@ -164,7 +207,6 @@ export default function ScheduleAppointment() {
           />
           {errors.date && <p className="error">{errors.date}</p>}
         </div>
-
         <div>
           <label>Available Slots:</label>
           <select

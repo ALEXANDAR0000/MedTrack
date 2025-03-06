@@ -49,7 +49,7 @@ class AppointmentController extends Controller
     {
         $appointment = Appointment::where('id', $id)->where('patient_id', Auth::id())->firstOrFail();
 
-        if ($appointment->status !== 'pending') {
+        if ($appointment->status !== 'rejected') {
             return response()->json(['message' => 'Only pending appointments can be canceled.'], 403);
         }
 
@@ -83,10 +83,14 @@ class AppointmentController extends Controller
      * Shows doctor all his appointments
      */
     public function getDoctorAppointments()
-    {
-        $appointments = Appointment::where('doctor_id', Auth::id())->get();
-        return response()->json($appointments);
-    }
+{
+    $appointments = Appointment::where('doctor_id', Auth::id())
+        ->with('patient:id,first_name,last_name')  
+        ->get();
+
+    return response()->json($appointments);
+}
+
      /**
      * Update appointment status
      */
