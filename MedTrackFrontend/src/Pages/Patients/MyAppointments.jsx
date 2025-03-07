@@ -28,8 +28,6 @@ export default function MyAppointments() {
 
   function formatDateTime(dateString) {
     if (!dateString) return "Invalid Date";
-
-    // Kreiramo Date objekat bez automatskog konvertovanja vremenske zone
     const dateObj = new Date(dateString);
 
     if (isNaN(dateObj.getTime())) return "Invalid Date";
@@ -40,7 +38,12 @@ export default function MyAppointments() {
         month: "2-digit",
         year: "numeric",
       }),
-      time: dateObj.toTimeString().split(" ")[0].slice(0, 5), // Prikazuje HH:MM
+      time: dateObj.toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: "UTC",
+      }),
     };
   }
 

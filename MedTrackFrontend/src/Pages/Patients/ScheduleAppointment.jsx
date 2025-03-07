@@ -57,7 +57,6 @@ export default function ScheduleAppointment() {
     fetchDoctors();
   }, [selectedType, token]);
 
-  // Dohvati dostupne slotove (termine)
   useEffect(() => {
     if (!selectedDoctor || !date) {
       setAvailableSlots([]);
