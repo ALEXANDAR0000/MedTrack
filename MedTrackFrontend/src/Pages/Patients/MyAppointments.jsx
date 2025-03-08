@@ -6,11 +6,8 @@ export default function MyAppointments() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ID termina za koji gledamo recept (ili null ako ni za jedan)
   const [openedPrescriptionId, setOpenedPrescriptionId] = useState(null);
-  // Čuvamo podatke recepta kada se otvori (da ne moramo ponovo da fetchujemo)
   const [currentPrescription, setCurrentPrescription] = useState(null);
-  // Ako dođe do greške prilikom dohvatanja recepta
   const [prescriptionError, setPrescriptionError] = useState("");
 
   useEffect(() => {
@@ -48,7 +45,7 @@ export default function MyAppointments() {
         hour: "2-digit",
         minute: "2-digit",
         hour12: false,
-        timeZone: "UTC", // Prikaz bez lokalnog pomeranja
+        timeZone: "UTC",
       }),
     };
   }
@@ -82,9 +79,7 @@ export default function MyAppointments() {
     }
   }
 
-  // Klik na "View Prescription" ili "Close"
   async function handleTogglePrescription(appt) {
-    // Ako je već otvoren, zatvori ga
     if (openedPrescriptionId === appt.id) {
       setOpenedPrescriptionId(null);
       setCurrentPrescription(null);
@@ -92,7 +87,6 @@ export default function MyAppointments() {
       return;
     }
 
-    // Inače fetchujemo recept
     try {
       setPrescriptionError("");
       const res = await fetch(`/api/prescriptions/${appt.id}`, {
@@ -104,19 +98,18 @@ export default function MyAppointments() {
         } else {
           setPrescriptionError("Failed to fetch prescription.");
         }
-        setOpenedPrescriptionId(appt.id); // Da prikažemo poruku o grešci
+        setOpenedPrescriptionId(appt.id);
         setCurrentPrescription(null);
         return;
       }
 
       const data = await res.json();
-      // Sada imamo recept
       setOpenedPrescriptionId(appt.id);
       setCurrentPrescription(data);
     } catch (error) {
       console.error("Error fetching prescription:", error);
       setPrescriptionError("An error occurred while fetching prescription.");
-      setOpenedPrescriptionId(appt.id); // Otvori deo za prikaz greške
+      setOpenedPrescriptionId(appt.id);
       setCurrentPrescription(null);
     }
   }
@@ -140,7 +133,6 @@ export default function MyAppointments() {
               key={appointment.id}
               className="bg-white shadow-md rounded-lg p-4 mb-4 flex flex-col"
             >
-              {/* Ako nismo otvorili Prescription za ovaj termin, prikazujemo standardnu karticu */}
               {!isViewingPrescription && (
                 <>
                   <div className="flex justify-between items-start">
@@ -195,14 +187,12 @@ export default function MyAppointments() {
                 </>
               )}
 
-              {/* Ako smo otvorili Prescription za ovaj termin */}
               {isViewingPrescription && (
                 <div className="mt-2">
                   <p className="font-bold mb-2">
                     Prescription for Appointment:
                   </p>
 
-                  {/* Ako imamo grešku, prikažemo je */}
                   {prescriptionError ? (
                     <p className="text-red-500 mb-2">{prescriptionError}</p>
                   ) : currentPrescription ? (
