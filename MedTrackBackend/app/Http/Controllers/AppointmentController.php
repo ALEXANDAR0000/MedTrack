@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Appointment;
+use App\Models\MedicalRecord;
+use App\Models\Prescription;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -168,8 +170,8 @@ class AppointmentController extends Controller
     {
         $appointment = Appointment::where('id', $id)->where('doctor_id', Auth::id())->firstOrFail();
 
-        if ($appointment->status !== 'approved') {
-            return response()->json(['message' => 'Only approved appointments can be marked as no-show.'], 403);
+        if ($appointment->status !== 'in_progress') {
+            return response()->json(['message' => 'Only in_progress appointments can be marked as no-show.'], 403);
         }
 
         MedicalRecord::create([
@@ -183,7 +185,7 @@ class AppointmentController extends Controller
             'details' => 'No prescription issued. Patient was absent.',
         ]);
 
-        $appointment->status = 'no_show';
+        $appointment->status = 'completed';
         $appointment->save();
 
         return response()->json(['message' => 'Appointment marked as no-show.', 'appointment' => $appointment]);

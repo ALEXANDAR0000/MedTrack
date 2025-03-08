@@ -19,6 +19,7 @@ import EditMyProfile from "./Pages/Patients/EditMyProfile";
 import Inbox from "./Pages/Doctors/Inbox";
 import Appointments from "./Pages/Doctors/Appointments";
 import MedicalRecords from "./Pages/Doctors/MedicalRecords";
+import InProgressAppointment from "./Pages/Doctors/InProgressAppointment";
 
 export default function App() {
   const { user } = useContext(AppContext);
@@ -70,6 +71,10 @@ export default function App() {
             <>
               <Route path="/doctor/inbox" element={<Inbox />} />
               <Route path="/doctor/appointments" element={<Appointments />} />
+              <Route
+                path="/doctor/appointments/in-progress/:id"
+                element={<InProgressAppointment />}
+              />
               <Route
                 path="/doctor/medical-records"
                 element={<MedicalRecords />}
