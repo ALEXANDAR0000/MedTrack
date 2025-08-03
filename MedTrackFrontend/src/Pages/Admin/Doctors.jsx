@@ -1,12 +1,13 @@
 import { useEffect, useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
 import { AppContext } from "../../Context/AppContext";
+import AdminDataTable from "../../Components/AdminDataTable";
+import ConfirmationModal from "../../Components/ConfirmationModal";
 
 export default function Doctors() {
   const { token } = useContext(AppContext);
-  const navigate = useNavigate();
   const [doctors, setDoctors] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     async function fetchDoctors() {
@@ -19,7 +20,12 @@ export default function Doctors() {
     fetchDoctors();
   }, [token]);
 
-  async function handleDelete() {
+  function handleDeleteClick() {
+    if (!selectedDoctor) return;
+    setShowDeleteModal(true);
+  }
+
+  async function handleDeleteConfirm() {
     if (!selectedDoctor) return;
     const res = await fetch(`/api/admin/users/${selectedDoctor.id}`, {
       method: "DELETE",
@@ -29,63 +35,45 @@ export default function Doctors() {
       setDoctors(doctors.filter((doc) => doc.id !== selectedDoctor.id));
       setSelectedDoctor(null);
     }
+    setShowDeleteModal(false);
   }
 
+  function handleDeleteCancel() {
+    setShowDeleteModal(false);
+  }
+
+  const columns = [
+    { key: "id", header: "ID", width: "w-16" },
+    { key: "first_name", header: "First Name", width: "min-w-[120px]" },
+    { key: "last_name", header: "Last Name", width: "min-w-[120px]" },
+    { key: "email", header: "Email", width: "min-w-[200px]", className: "break-all" },
+    { key: "doctor_type", header: "Doctor Type", width: "min-w-[150px]" },
+  ];
+
   return (
-    <div className="p-4 max-w-6xl mx-auto">
-      <h1 className="title text-center mb-4">Doctors</h1>
-      <div className="flex justify-center space-x-2 mb-3">
-        <button
-          className="primary-btn px-6 py-2"
-          onClick={() => navigate("/admin/doctors/add")}
-        >
-          Add Doctor
-        </button>
-        <button
-          className="primary-btn px-6 py-2"
-          disabled={!selectedDoctor}
-          onClick={() => navigate(`/admin/doctors/update/${selectedDoctor.id}`)}
-        >
-          Update
-        </button>
-        <button
-          className="primary-btn bg-red-500 hover:bg-red-600 px-6 py-2"
-          disabled={!selectedDoctor}
-          onClick={handleDelete}
-        >
-          Delete
-        </button>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>First Name</th>
-              <th>Last Name</th>
-              <th>Email</th>
-              <th>Doctor Type</th>
-            </tr>
-          </thead>
-          <tbody>
-            {doctors.map((doctor) => (
-              <tr
-                key={doctor.id}
-                className={
-                  selectedDoctor?.id === doctor.id ? "bg-blue-200" : ""
-                }
-                onClick={() => setSelectedDoctor(doctor)}
-              >
-                <td>{doctor.id}</td>
-                <td>{doctor.first_name}</td>
-                <td>{doctor.last_name}</td>
-                <td>{doctor.email}</td>
-                <td>{doctor.doctor_type}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <>
+      <AdminDataTable
+        title="Doctors"
+        data={doctors}
+        columns={columns}
+        selectedItem={selectedDoctor}
+        onSelectItem={setSelectedDoctor}
+        onDelete={handleDeleteClick}
+        addPath="/admin/doctors/add"
+        updatePath="/admin/doctors/update/:id"
+        entityName="Doctor"
+      />
+      
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Doctor"
+        message={`Are you sure you want to delete Dr. ${selectedDoctor?.first_name} ${selectedDoctor?.last_name}? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+      />
+    </>
   );
 }

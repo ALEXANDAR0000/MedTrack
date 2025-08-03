@@ -45,7 +45,7 @@ export default function MyProfile() {
         </p>
 
         <button
-          className="primary-btn w-full mt-4"
+          className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-6 py-3 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 mt-4"
           onClick={() => navigate("/patient/profile/edit")}
         >
           Edit Profile

@@ -1,12 +1,13 @@
 import { useEffect, useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
 import { AppContext } from "../../Context/AppContext";
+import AdminDataTable from "../../Components/AdminDataTable";
+import ConfirmationModal from "../../Components/ConfirmationModal";
 
 export default function Patients() {
   const { token } = useContext(AppContext);
-  const navigate = useNavigate();
   const [patients, setPatients] = useState([]);
   const [selectedPatient, setSelectedPatient] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     async function fetchPatients() {
@@ -19,7 +20,12 @@ export default function Patients() {
     fetchPatients();
   }, [token]);
 
-  async function handleDelete() {
+  function handleDeleteClick() {
+    if (!selectedPatient) return;
+    setShowDeleteModal(true);
+  }
+
+  async function handleDeleteConfirm() {
     if (!selectedPatient) return;
     const res = await fetch(`/api/admin/users/${selectedPatient.id}`, {
       method: "DELETE",
@@ -29,71 +35,48 @@ export default function Patients() {
       setPatients(patients.filter((pat) => pat.id !== selectedPatient.id));
       setSelectedPatient(null);
     }
+    setShowDeleteModal(false);
   }
 
+  function handleDeleteCancel() {
+    setShowDeleteModal(false);
+  }
+
+  const columns = [
+    { key: "id", header: "ID", width: "w-16" },
+    { key: "first_name", header: "First Name", width: "min-w-[120px]" },
+    { key: "last_name", header: "Last Name", width: "min-w-[120px]" },
+    { key: "email", header: "Email", width: "min-w-[200px]", className: "break-all" },
+    { key: "gender", header: "Gender", width: "w-20" },
+    { key: "date_of_birth", header: "Birth Date", width: "w-32" },
+    { key: "city", header: "City", width: "min-w-[100px]" },
+    { key: "address", header: "Address", width: "min-w-[150px]", className: "break-words" },
+  ];
+
   return (
-    <div className="p-4 max-w-6xl mx-auto">
-      <h1 className="title text-center mb-4">Patients</h1>
-      <div className="flex justify-center space-x-2 mb-3">
-        <button
-          className="primary-btn px-6 py-2"
-          onClick={() => navigate("/admin/patients/add")}
-        >
-          Add Patient
-        </button>
-        <button
-          className="primary-btn px-6 py-2"
-          disabled={!selectedPatient}
-          onClick={() =>
-            navigate(`/admin/patients/update/${selectedPatient.id}`)
-          }
-        >
-          Update
-        </button>
-        <button
-          className="primary-btn bg-red-500 hover:bg-red-600 px-6 py-2"
-          disabled={!selectedPatient}
-          onClick={handleDelete}
-        >
-          Delete
-        </button>
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>First Name</th>
-              <th>Last Name</th>
-              <th>Email</th>
-              <th>Gender</th>
-              <th>Date of Birth</th>
-              <th>City</th>
-              <th>Address</th>
-            </tr>
-          </thead>
-          <tbody>
-            {patients.map((patient) => (
-              <tr
-                key={patient.id}
-                className={
-                  selectedPatient?.id === patient.id ? "bg-blue-200" : ""
-                }
-                onClick={() => setSelectedPatient(patient)}
-              >
-                <td>{patient.id}</td>
-                <td>{patient.first_name}</td>
-                <td>{patient.last_name}</td>
-                <td>{patient.email}</td>
-                <td>{patient.gender}</td>
-                <td>{patient.date_of_birth.split("T")[0]}</td>
-                <td>{patient.city}</td>
-                <td>{patient.address}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <>
+      <AdminDataTable
+        title="Patients"
+        data={patients}
+        columns={columns}
+        selectedItem={selectedPatient}
+        onSelectItem={setSelectedPatient}
+        onDelete={handleDeleteClick}
+        addPath="/admin/patients/add"
+        updatePath="/admin/patients/update/:id"
+        entityName="Patient"
+      />
+      
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Patient"
+        message={`Are you sure you want to delete ${selectedPatient?.first_name} ${selectedPatient?.last_name}? This action cannot be undone and will remove all their medical records.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+      />
+    </>
   );
 }
