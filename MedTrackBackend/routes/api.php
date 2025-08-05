@@ -52,10 +52,6 @@ Route::middleware(['auth:sanctum', 'role:doctor'])->group(function () {
     Route::post('/appointments/{id}/finish', [AppointmentController::class, 'finishAppointment']);
     Route::post('/appointments/{id}/noshow', [AppointmentController::class, 'markAsNoShow']);
     Route::get('/patients/{id}/medical-records', [MedicalRecordController::class, 'getPatientMedicalRecord']);
-    Route::post('/patients/{id}/medical-records', [MedicalRecordController::class, 'addMedicalRecord']);
-    Route::delete('/medical-records/{id}', [MedicalRecordController::class, 'deleteMedicalRecord']);
-    Route::post('/patients/{id}/prescriptions', [PrescriptionController::class, 'addPrescription']);
-    Route::delete('/prescriptions/{id}', [PrescriptionController::class, 'deletePrescription']);
     
     // Doctor availability management routes
     Route::get('/doctor/availability', [DoctorAvailabilityController::class, 'getAvailability']);
@@ -63,7 +59,5 @@ Route::middleware(['auth:sanctum', 'role:doctor'])->group(function () {
     Route::post('/doctor/availability/exception', [DoctorAvailabilityController::class, 'createException']);
     Route::put('/doctor/availability/{id}', [DoctorAvailabilityController::class, 'updateRule']);
     Route::delete('/doctor/availability/{id}', [DoctorAvailabilityController::class, 'deleteRule']);
-    Route::get('/doctor/availability/day/{dayOfWeek}', [DoctorAvailabilityController::class, 'getDayTemplate']);
-    Route::put('/doctor/availability/weekly-schedule', [DoctorAvailabilityController::class, 'updateWeeklySchedule']);
 });
 

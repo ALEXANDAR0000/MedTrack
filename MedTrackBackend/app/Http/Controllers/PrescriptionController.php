@@ -24,34 +24,5 @@ class PrescriptionController extends Controller
 
         return response()->json($prescription);
     }
-     /**
-     * Add prescription
-     */
-    public function addPrescription(Request $request, $patient_id)
-    {
-        $request->validate([
-            'appointment_id' => 'required|exists:appointments,id',
-            'details' => 'required|string',
-        ]);
-
-        $prescription = Prescription::create([
-            'appointment_id' => $request->appointment_id,
-            'doctor_id' => Auth::id(),
-            'details' => $request->details,
-        ]);
-
-        return response()->json(['message' => 'Prescription added successfully.', 'prescription' => $prescription], 201);
-    }
-
-    /**
-     * Delete prescription
-     */
-    public function deletePrescription($id)
-    {
-        $prescription = Prescription::findOrFail($id);
-        
-        $prescription->delete();
-
-        return response()->json(['message' => 'Prescription deleted successfully.']);
-    }
+   
 }

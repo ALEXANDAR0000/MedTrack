@@ -50,7 +50,7 @@ class AuthController extends Controller
     }
 
     /**
-     * Login (admin, doktdoctoror, patient)
+     * Login (admin, doctor, patient)
      */
     public function login(Request $request)
     {
