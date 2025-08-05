@@ -90,6 +90,13 @@ export default function Layout() {
             >
               Medical Records
             </Link>
+            <Link
+              to="/doctor/availability"
+              className={linkClass}
+              onClick={closeMenu}
+            >
+              Availability
+            </Link>
           </>
         )}
         {user ? (

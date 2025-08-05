@@ -197,11 +197,8 @@ export default function MyAppointments() {
                     <p className="text-red-500 mb-2">{prescriptionError}</p>
                   ) : currentPrescription ? (
                     <div className="bg-gray-100 p-3 rounded">
-                      <p className="mb-2">
-                        <strong>ID:</strong> {currentPrescription.id}
-                      </p>
                       <p>
-                        <strong>Details:</strong> {currentPrescription.details}
+                        {currentPrescription.details}
                       </p>
                     </div>
                   ) : (

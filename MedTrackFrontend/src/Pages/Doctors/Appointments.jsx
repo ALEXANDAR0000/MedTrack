@@ -43,32 +43,45 @@ export default function Appointments() {
     return <p className="text-center mt-10">No approved appointments.</p>;
   }
 
-  function formatDateTime(dateString) {
-    if (!dateString) return { date: "Invalid Date", time: "Invalid Time" };
+  function formatAppointment(appointment) {
+    if (!appointment.date) return { date: "Invalid Date", time: "Invalid Time" };
 
-    const dateObj = new Date(dateString);
-
+    const dateObj = new Date(appointment.date);
     if (isNaN(dateObj.getTime()))
       return { date: "Invalid Date", time: "Invalid Time" };
 
-    return {
-      date: dateObj.toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        timeZone: "UTC",
-      }),
-      time: dateObj.toLocaleTimeString("en-GB", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-        timeZone: "UTC",
-      }),
+    const date = dateObj.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+
+    // Format time from start_time and end_time fields
+    const formatTime = (timeStr) => {
+      if (!timeStr) return "00:00";
+      if (timeStr.includes('T')) {
+        return timeStr.split('T')[1].substring(0, 5);
+      }
+      return timeStr;
     };
+
+    const startTime = formatTime(appointment.start_time);
+    const endTime = formatTime(appointment.end_time);
+    const time = `${startTime} - ${endTime}`;
+
+    return { date, time };
   }
 
   function handleStart(appointmentId) {
     navigate(`/doctor/appointments/in-progress/${appointmentId}`);
+  }
+
+  function isToday(dateString) {
+    if (!dateString) return false;
+    const appointmentDate = new Date(dateString);
+    const today = new Date();
+    
+    return appointmentDate.toDateString() === today.toDateString();
   }
 
   return (
@@ -76,11 +89,16 @@ export default function Appointments() {
       <h1 className="title text-center">Approved Appointments</h1>
 
       {appointments.map((appt) => {
-        const { date, time } = formatDateTime(appt.date);
+        const { date, time } = formatAppointment(appt);
+        const isTodayAppointment = isToday(appt.date);
         return (
           <div
             key={appt.id}
-            className="bg-white shadow-md rounded-lg p-4 mb-4 flex flex-col"
+            className={`shadow-md rounded-lg p-4 mb-4 flex flex-col ${
+              isTodayAppointment 
+                ? "bg-blue-50 border-2 border-blue-300" 
+                : "bg-white"
+            }`}
           >
             <p>
               <strong>Patient:</strong>{" "}
@@ -90,6 +108,11 @@ export default function Appointments() {
             </p>
             <p>
               <strong>Date:</strong> {date}
+              {isTodayAppointment && (
+                <span className="ml-2 px-2 py-1 bg-blue-500 text-white text-xs rounded-full">
+                  TODAY
+                </span>
+              )}
             </p>
             <p>
               <strong>Time:</strong> {time}

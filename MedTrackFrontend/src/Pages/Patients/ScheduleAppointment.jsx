@@ -24,7 +24,7 @@ export default function ScheduleAppointment() {
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [date, setDate] = useState("");
   const [availableSlots, setAvailableSlots] = useState([]);
-  const [selectedSlot, setSelectedSlot] = useState("");
+  const [selectedSlot, setSelectedSlot] = useState(null);
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
@@ -79,7 +79,7 @@ export default function ScheduleAppointment() {
 
         const data = await res.json();
         setAvailableSlots(data.available_slots);
-        setSelectedSlot("");
+        setSelectedSlot(null);
       } catch (error) {
         console.error("Error:", error);
       }
@@ -114,11 +114,6 @@ export default function ScheduleAppointment() {
       return;
     }
 
-    const localDate = new Date(`${date}T${selectedSlot}:00`);
-    const utcDate = new Date(
-      localDate.getTime() - localDate.getTimezoneOffset() * 60000
-    ).toISOString();
-
     try {
       const res = await fetch("/api/appointments", {
         method: "POST",
@@ -128,7 +123,7 @@ export default function ScheduleAppointment() {
         },
         body: JSON.stringify({
           doctor_id: selectedDoctor.id,
-          date: utcDate,
+          time_slot_id: selectedSlot.id,
         }),
       });
 
@@ -156,7 +151,8 @@ export default function ScheduleAppointment() {
     <div className="p-6 max-w-3xl mx-auto">
       <h1 className="title text-center">Schedule Appointment</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="bg-white shadow-md rounded-lg p-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label>Doctor Type:</label>
           <select
@@ -209,25 +205,48 @@ export default function ScheduleAppointment() {
         <div>
           <label>Available Slots:</label>
           <select
-            value={selectedSlot}
-            onChange={(e) => setSelectedSlot(e.target.value)}
+            value={selectedSlot?.id || ""}
+            onChange={(e) => {
+              const slotId = e.target.value;
+              const slot = availableSlots.find(s => s.id == slotId);
+              setSelectedSlot(slot || null);
+            }}
             className="input-field"
             disabled={!date || availableSlots.length === 0}
           >
             <option value="">Select a time slot</option>
-            {availableSlots.map((slot, index) => (
-              <option key={index} value={slot}>
-                {slot}
-              </option>
-            ))}
+            {availableSlots.map((slot) => {
+              // Handle both time strings (HH:MM) and datetime strings
+              const formatTime = (timeStr) => {
+                if (timeStr.includes('T')) {
+                  // It's a datetime string, extract just the time part
+                  return timeStr.split('T')[1].substring(0, 5);
+                } else {
+                  // It's already a time string
+                  return timeStr;
+                }
+              };
+              
+              const startTime = formatTime(slot.start_time);
+              const endTime = formatTime(slot.end_time);
+              
+              return (
+                <option key={slot.id} value={slot.id}>
+                  {startTime} - {endTime}
+                </option>
+              );
+            })}
           </select>
           {errors.slot && <p className="error">{errors.slot}</p>}
         </div>
 
-        <button type="submit" className="primary-btn w-full" disabled={loading}>
-          {loading ? "Scheduling..." : "Schedule Appointment"}
-        </button>
-      </form>
+        <div className="flex justify-end">
+          <button type="submit" className="primary-btn !w-auto" disabled={loading}>
+            {loading ? "Scheduling..." : "Schedule Appointment"}
+          </button>
+        </div>
+        </form>
+      </div>
     </div>
   );
 }

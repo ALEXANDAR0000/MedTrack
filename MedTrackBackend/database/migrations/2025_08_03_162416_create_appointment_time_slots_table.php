@@ -11,23 +11,23 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('appointments', function (Blueprint $table) {
+        Schema::create('appointment_time_slots', function (Blueprint $table) {
             $table->id();
-            //Relationship with patient
-            $table->foreignId('patient_id')->constrained('users')->onDelete('cascade');
-            //Relationship with doctor
             $table->foreignId('doctor_id')->constrained('users')->onDelete('cascade');
-
             $table->date('date');
             $table->time('start_time');
             $table->time('end_time');
-            $table->enum('status', ['pending', 'approved', 'rejected', 'in_progress', 'completed'])->default('pending');
+            $table->boolean('is_available')->default(true);
+            $table->foreignId('appointment_id')->nullable()->constrained('appointments')->onDelete('set null');
+            $table->timestamp('reserved_until')->nullable(); 
             $table->timestamps();
             
-            // Indexes for performance
             $table->index(['doctor_id', 'date']);
-            $table->index(['patient_id', 'date']);
-            $table->index(['date', 'start_time']);
+            $table->index(['doctor_id', 'date', 'is_available']);
+            $table->index(['appointment_id']);
+            $table->index(['reserved_until']);
+            
+            $table->unique(['doctor_id', 'date', 'start_time'], 'unique_doctor_slot');
         });
     }
 
@@ -36,6 +36,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('appointments');
+        Schema::dropIfExists('appointment_time_slots');
     }
 };

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Appointment;
 use App\Models\MedicalRecord;
 use App\Models\Prescription;
+use App\Models\AppointmentTimeSlot;
+use App\Services\TimeSlotService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -19,17 +21,46 @@ class AppointmentController extends Controller
     {
         $request->validate([
             'doctor_id' => 'required|exists:users,id',
-            'date' => 'required|date|after:today',
+            'time_slot_id' => 'required|exists:appointment_time_slots,id',
         ]);
 
-        $appointment = Appointment::create([
-            'patient_id' => Auth::id(),
-            'doctor_id' => $request->doctor_id,
-            'date' => $request->date,
-            'status' => 'pending',
-        ]);
+        $timeSlotService = new TimeSlotService();
 
-        return response()->json(['message' => 'Appointment scheduled successfully', 'appointment' => $appointment], 201);
+        try {
+            // Get the time slot
+            $timeSlot = AppointmentTimeSlot::findOrFail($request->time_slot_id);
+            
+            // Verify the slot belongs to the requested doctor
+            if ($timeSlot->doctor_id != $request->doctor_id) {
+                return response()->json(['message' => 'Time slot does not belong to the selected doctor'], 422);
+            }
+            
+            // Check if slot is available
+            if (!$timeSlot->is_available || $timeSlot->appointment_id || $timeSlot->isReserved()) {
+                return response()->json(['message' => 'This time slot is no longer available'], 422);
+            }
+
+            // Create the appointment
+            $appointment = Appointment::create([
+                'patient_id' => Auth::id(),
+                'doctor_id' => $request->doctor_id,
+                'date' => $timeSlot->date,
+                'start_time' => $timeSlot->start_time,
+                'end_time' => $timeSlot->end_time,
+                'status' => 'pending',
+            ]);
+
+            // Book the time slot
+            $timeSlotService->bookSlot($request->time_slot_id, $appointment->id);
+
+            return response()->json([
+                'message' => 'Appointment scheduled successfully', 
+                'appointment' => $appointment->load('doctor:id,first_name,last_name')
+            ], 201);
+            
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
     }
     /**
      * Showing user appointments
@@ -51,8 +82,15 @@ class AppointmentController extends Controller
     {
         $appointment = Appointment::where('id', $id)->where('patient_id', Auth::id())->firstOrFail();
 
-        if ($appointment->status !== 'rejected') {
+        if ($appointment->status !== 'pending') {
             return response()->json(['message' => 'Only pending appointments can be canceled.'], 403);
+        }
+
+        // Release the time slot
+        $timeSlot = AppointmentTimeSlot::where('appointment_id', $appointment->id)->first();
+        if ($timeSlot) {
+            $timeSlotService = new TimeSlotService();
+            $timeSlotService->releaseSlot($timeSlot->id);
         }
 
         $appointment->delete();
@@ -60,26 +98,29 @@ class AppointmentController extends Controller
         return response()->json(['message' => 'Appointment canceled successfully.']);
     }
     /**
-     * Check avalivable appointments
+     * Check available appointments
      */
     public function getAvailableAppointments($doctor_id, $date)
     {
-        $date = Carbon::parse($date)->startOfDay();
+        $timeSlotService = new TimeSlotService();
         
-        $existingAppointments = Appointment::where('doctor_id', $doctor_id)
-            ->whereDate('date', $date)
-            ->pluck('date')
-            ->toArray();
-
-        $availableSlots = [
-            '08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00'
-        ];
-
-        $availableAppointments = array_filter($availableSlots, function ($time) use ($existingAppointments, $date) {
-            return !in_array($date->copy()->setTimeFromTimeString($time), $existingAppointments);
-        });
-
-        return response()->json(['available_slots' => array_values($availableAppointments)]);
+        try {
+            $availableSlots = $timeSlotService->getAvailableSlots($doctor_id, $date);
+            
+            $slots = $availableSlots->map(function ($slot) {
+                return [
+                    'id' => $slot->id,
+                    'start_time' => $slot->start_time,
+                    'end_time' => $slot->end_time,
+                    'date' => $slot->date,
+                ];
+            });
+            
+            return response()->json(['available_slots' => $slots]);
+            
+        } catch (\Exception $e) {
+            return response()->json(['message' => $e->getMessage()], 500);
+        }
     }
     /**
      * Shows doctor all his appointments

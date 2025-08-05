@@ -37,37 +37,42 @@ export default function Login() {
   }
 
   return (
-    <>
-      <h1 className="title">Login to your account</h1>
-      <form onSubmit={handleLogin} className="w-1/2 mx-auto space-y-4">
-        <div>
-          <input
-            type="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={(e) =>
-              setFormData({ ...formData, email: e.target.value })
-            }
-            className="input-field"
-          />
-          {errors.email && <p className="error">{errors.email}</p>}
-        </div>
-        <div>
-          <input
-            type="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={(e) =>
-              setFormData({ ...formData, password: e.target.value })
-            }
-            className="input-field"
-          />
-          {errors.password && <p className="error">{errors.password}</p>}
-        </div>
-        <button type="submit" className="primary-btn">
-          Login
-        </button>
-      </form>
-    </>
+    <div className="p-6 max-w-md mx-auto">
+      <h1 className="title text-center">Login to your account</h1>
+      
+      <div className="bg-white shadow-md rounded-lg p-6">
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div>
+            <input
+              type="email"
+              placeholder="Email"
+              value={formData.email}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
+              className="input-field"
+            />
+            {errors.email && <p className="error">{errors.email}</p>}
+          </div>
+          <div>
+            <input
+              type="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
+              className="input-field"
+            />
+            {errors.password && <p className="error">{errors.password}</p>}
+          </div>
+          <div className="flex justify-end">
+            <button type="submit" className="primary-btn !w-auto">
+              Login
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }

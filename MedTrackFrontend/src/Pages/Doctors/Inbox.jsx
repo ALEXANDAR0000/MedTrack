@@ -35,27 +35,33 @@ export default function Inbox() {
     fetchAppointments();
   }, [token]);
 
-  function formatDateTime(dateString) {
-    if (!dateString) return { date: "Invalid Date", time: "Invalid Time" };
+  function formatAppointment(appointment) {
+    if (!appointment.date) return { date: "Invalid Date", time: "Invalid Time" };
 
-    const dateObj = new Date(dateString);
-
+    const dateObj = new Date(appointment.date);
     if (isNaN(dateObj.getTime()))
       return { date: "Invalid Date", time: "Invalid Time" };
 
-    return {
-      date: dateObj.toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      }),
-      time: dateObj.toLocaleTimeString("en-GB", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-        timeZone: "UTC",
-      }),
+    const date = dateObj.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+
+    // Format time from start_time and end_time fields
+    const formatTime = (timeStr) => {
+      if (!timeStr) return "00:00";
+      if (timeStr.includes('T')) {
+        return timeStr.split('T')[1].substring(0, 5);
+      }
+      return timeStr;
     };
+
+    const startTime = formatTime(appointment.start_time);
+    const endTime = formatTime(appointment.end_time);
+    const time = `${startTime} - ${endTime}`;
+
+    return { date, time };
   }
 
   async function handleStatusChange(appointmentId, newStatus) {
@@ -94,7 +100,7 @@ export default function Inbox() {
       <h1 className="title text-center">Pending Appointments</h1>
 
       {appointments.map((appointment) => {
-        const { date, time } = formatDateTime(appointment.date);
+        const { date, time } = formatAppointment(appointment);
         return (
           <div
             key={appointment.id}

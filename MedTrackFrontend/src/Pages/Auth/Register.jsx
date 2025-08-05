@@ -43,9 +43,11 @@ export default function Register() {
   }
 
   return (
-    <>
-      <h1 className="title">Register a new account</h1>
-      <form onSubmit={handleRegister} className="w-1/2 mx-auto space-y-4">
+    <div className="p-6 max-w-md mx-auto">
+      <h1 className="title text-center">Register a new account</h1>
+      
+      <div className="bg-white shadow-md rounded-lg p-6">
+        <form onSubmit={handleRegister} className="space-y-4">
         <div>
           <input
             type="text"
@@ -166,10 +168,13 @@ export default function Register() {
           />
           {errors.password && <p className="error">{errors.password}</p>}
         </div>
-        <button type="submit" className="primary-btn">
-          Register
-        </button>
-      </form>
-    </>
+          <div className="flex justify-end">
+            <button type="submit" className="primary-btn !w-auto">
+              Register
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }

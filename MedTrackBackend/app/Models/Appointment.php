@@ -19,13 +19,17 @@ class Appointment extends Model
         'patient_id',
         'doctor_id',
         'date',
+        'start_time',
+        'end_time',
         'status',
     ];
 
     protected function casts(): array
     {
         return [
-            'date' => 'datetime',
+            'date' => 'date',
+            'start_time' => 'datetime:H:i',
+            'end_time' => 'datetime:H:i',
             'created_at' => 'datetime',
             'updated_at'  => 'datetime',
         ];
@@ -44,5 +48,13 @@ class Appointment extends Model
     public function doctor()
     {
         return $this->belongsTo(User::class, 'doctor_id');
+    }
+
+    /**
+     * Relationship: Each appointment may have a time slot
+     */
+    public function timeSlot()
+    {
+        return $this->hasOne(AppointmentTimeSlot::class);
     }
 }
