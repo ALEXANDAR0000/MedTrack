@@ -1,4 +1,5 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useCallback } from "react";
+import PropTypes from "prop-types";
 import { AppContext } from "../../Context/AppContext";
 
 export default function Availability() {
@@ -9,15 +10,7 @@ export default function Availability() {
   const [errors, setErrors] = useState({});
   const [editingDay, setEditingDay] = useState(null);
 
-  const dayNames = [
-    "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
-  ];
-
-  useEffect(() => {
-    fetchSchedule();
-  }, [token]);
-
-  async function fetchSchedule() {
+  const fetchSchedule = useCallback(async () => {
     try {
       const res = await fetch("/api/doctor/schedule", {
         headers: { Authorization: `Bearer ${token}` },
@@ -35,11 +28,15 @@ export default function Availability() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [token]);
+
+  useEffect(() => {
+    fetchSchedule();
+  }, [fetchSchedule]);
 
   async function updateDay(dayData) {
     setErrors({});
-    
+
     try {
       const res = await fetch("/api/doctor/schedule/day", {
         method: "POST",
@@ -80,7 +77,7 @@ export default function Availability() {
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="title mb-6">Weekly Schedule</h1>
-      
+
       {errors.general && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
           {errors.general}
@@ -118,19 +115,17 @@ export default function Availability() {
                   onEdit={() => setEditingDay(day.day_of_week)}
                   onCancel={() => setEditingDay(null)}
                   onSave={handleDayUpdate}
-                  errors={errors}
                 />
               ))}
             </tbody>
           </table>
         </div>
       </div>
-
     </div>
   );
 }
 
-function DayRow({ day, isEditing, onEdit, onCancel, onSave, errors }) {
+function DayRow({ day, isEditing, onEdit, onCancel, onSave }) {
   const [formData, setFormData] = useState({
     day_of_week: day.day_of_week,
     start_time: day.start_time,
@@ -162,7 +157,9 @@ function DayRow({ day, isEditing, onEdit, onCancel, onSave, errors }) {
         <td className="px-6 py-4 whitespace-nowrap">
           <select
             value={formData.is_active}
-            onChange={(e) => setFormData({ ...formData, is_active: e.target.value === 'true' })}
+            onChange={(e) =>
+              setFormData({ ...formData, is_active: e.target.value === "true" })
+            }
             className="text-sm border rounded px-2 py-1"
           >
             <option value={true}>Active</option>
@@ -175,14 +172,18 @@ function DayRow({ day, isEditing, onEdit, onCancel, onSave, errors }) {
               <input
                 type="time"
                 value={formData.start_time}
-                onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, start_time: e.target.value })
+                }
                 className="text-sm border rounded px-2 py-1 w-20"
               />
               <span className="text-gray-500">to</span>
               <input
                 type="time"
                 value={formData.end_time}
-                onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, end_time: e.target.value })
+                }
                 className="text-sm border rounded px-2 py-1 w-20"
               />
             </div>
@@ -194,7 +195,12 @@ function DayRow({ day, isEditing, onEdit, onCancel, onSave, errors }) {
           {formData.is_active ? (
             <select
               value={formData.slot_duration}
-              onChange={(e) => setFormData({ ...formData, slot_duration: parseInt(e.target.value) })}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  slot_duration: parseInt(e.target.value),
+                })
+              }
               className="text-sm border rounded px-2 py-1"
             >
               <option value={15}>15 min</option>
@@ -260,3 +266,18 @@ function DayRow({ day, isEditing, onEdit, onCancel, onSave, errors }) {
     </tr>
   );
 }
+
+DayRow.propTypes = {
+  day: PropTypes.shape({
+    day_of_week: PropTypes.number.isRequired,
+    day_name: PropTypes.string.isRequired,
+    start_time: PropTypes.string,
+    end_time: PropTypes.string,
+    slot_duration: PropTypes.number,
+    is_active: PropTypes.bool.isRequired,
+  }).isRequired,
+  isEditing: PropTypes.bool.isRequired,
+  onEdit: PropTypes.func.isRequired,
+  onCancel: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
+};
