@@ -5,8 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Appointment;
 use App\Models\MedicalRecord;
 use App\Models\Prescription;
-use App\Models\AppointmentTimeSlot;
-use App\Services\TimeSlotService;
+use App\Models\DoctorSchedule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -15,43 +14,53 @@ use Carbon\Carbon;
 class AppointmentController extends Controller
 {
   /**
-     * Creating new appointment
+     * Create new appointment
      */
     public function scheduleAppointment(Request $request)
     {
         $request->validate([
             'doctor_id' => 'required|exists:users,id',
-            'time_slot_id' => 'required|exists:appointment_time_slots,id',
+            'date' => 'required|date|after_or_equal:today',
+            'start_time' => 'required|date_format:H:i',
+            'end_time' => 'required|date_format:H:i|after:start_time',
         ]);
 
-        $timeSlotService = new TimeSlotService();
-
         try {
-            // Get the time slot
-            $timeSlot = AppointmentTimeSlot::findOrFail($request->time_slot_id);
-            
-            // Verify the slot belongs to the requested doctor
-            if ($timeSlot->doctor_id != $request->doctor_id) {
-                return response()->json(['message' => 'Time slot does not belong to the selected doctor'], 422);
-            }
-            
-            // Check if slot is available
-            if (!$timeSlot->is_available || $timeSlot->appointment_id || $timeSlot->isReserved()) {
+            // Check if this time slot is already booked
+            $existingAppointment = Appointment::where('doctor_id', $request->doctor_id)
+                ->where('date', $request->date)
+                ->where('start_time', $request->start_time)
+                ->first();
+
+            if ($existingAppointment) {
                 return response()->json(['message' => 'This time slot is no longer available'], 422);
+            }
+
+            // Verify the doctor is available at this time
+            $dayOfWeek = Carbon::parse($request->date)->dayOfWeek;
+            $schedule = DoctorSchedule::forDoctor($request->doctor_id)
+                ->forDay($dayOfWeek)
+                ->active()
+                ->first();
+
+            if (!$schedule) {
+                return response()->json(['message' => 'Doctor is not available on this day'], 422);
+            }
+
+            // Check if the requested time is within doctor's working hours
+            if ($request->start_time < $schedule->start_time || $request->end_time > $schedule->end_time) {
+                return response()->json(['message' => 'Requested time is outside doctor\'s working hours'], 422);
             }
 
             // Create the appointment
             $appointment = Appointment::create([
                 'patient_id' => Auth::id(),
                 'doctor_id' => $request->doctor_id,
-                'date' => $timeSlot->date,
-                'start_time' => $timeSlot->start_time,
-                'end_time' => $timeSlot->end_time,
+                'date' => $request->date,
+                'start_time' => $request->start_time,
+                'end_time' => $request->end_time,
                 'status' => 'pending',
             ]);
-
-            // Book the time slot
-            $timeSlotService->bookSlot($request->time_slot_id, $appointment->id);
 
             return response()->json([
                 'message' => 'Appointment scheduled successfully', 
@@ -86,41 +95,85 @@ class AppointmentController extends Controller
             return response()->json(['message' => 'Only pending appointments can be canceled.'], 403);
         }
 
-        // Release the time slot
-        $timeSlot = AppointmentTimeSlot::where('appointment_id', $appointment->id)->first();
-        if ($timeSlot) {
-            $timeSlotService = new TimeSlotService();
-            $timeSlotService->releaseSlot($timeSlot->id);
-        }
+        // No need to release time slots in simplified system - just delete appointment
 
         $appointment->delete();
 
         return response()->json(['message' => 'Appointment canceled successfully.']);
     }
     /**
-     * Check available appointments
+     * Get available appointment slots for a doctor on a specific date
      */
     public function getAvailableAppointments($doctor_id, $date)
     {
-        $timeSlotService = new TimeSlotService();
-        
         try {
-            $availableSlots = $timeSlotService->getAvailableSlots($doctor_id, $date);
+            $dayOfWeek = Carbon::parse($date)->dayOfWeek;
             
-            $slots = $availableSlots->map(function ($slot) {
-                return [
-                    'id' => $slot->id,
-                    'start_time' => $slot->start_time,
-                    'end_time' => $slot->end_time,
-                    'date' => $slot->date,
-                ];
+            // Get doctor's schedule for this day
+            $schedule = DoctorSchedule::forDoctor($doctor_id)
+                ->forDay($dayOfWeek)
+                ->active()
+                ->first();
+            
+            if (!$schedule) {
+                return response()->json(['available_slots' => []]);
+            }
+            
+            // Generate time slots for this day
+            $slots = $this->generateSlotsForDay($schedule, $date);
+            
+            // Get existing appointments for this doctor and date
+            $bookedTimes = Appointment::where('doctor_id', $doctor_id)
+                ->whereDate('date', $date)
+                ->pluck('start_time')
+                ->map(function($time) {
+                    // Convert datetime or time to just HH:MM format
+                    return Carbon::parse($time)->format('H:i');
+                })
+                ->toArray();
+            
+            // Filter out booked slots
+            $availableSlots = $slots->reject(function($slot) use ($bookedTimes) {
+                return in_array($slot['start_time'], $bookedTimes);
             });
             
-            return response()->json(['available_slots' => $slots]);
+            
+            return response()->json(['available_slots' => $availableSlots->values()]);
             
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Generate time slots for a specific day based on doctor's schedule
+     */
+    private function generateSlotsForDay($schedule, $date)
+    {
+        $slots = collect();
+        $startTime = Carbon::parse($date . ' ' . $schedule->start_time);
+        $endTime = Carbon::parse($date . ' ' . $schedule->end_time);
+        $slotDuration = $schedule->slot_duration;
+        
+        $current = $startTime->copy();
+        $slotId = 1; // Simple incremental ID for frontend
+        
+        while ($current->lt($endTime)) {
+            $slotEnd = $current->copy()->addMinutes($slotDuration);
+            
+            if ($slotEnd->lte($endTime)) {
+                $slots->push([
+                    'id' => $slotId++,
+                    'start_time' => $current->format('H:i'),
+                    'end_time' => $slotEnd->format('H:i'),
+                    'date' => $date,
+                ]);
+            }
+            
+            $current = $slotEnd;
+        }
+        
+        return $slots;
     }
     /**
      * Shows doctor all his appointments

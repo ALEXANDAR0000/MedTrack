@@ -123,7 +123,9 @@ export default function ScheduleAppointment() {
         },
         body: JSON.stringify({
           doctor_id: selectedDoctor.id,
-          time_slot_id: selectedSlot.id,
+          date: date,
+          start_time: selectedSlot.start_time,
+          end_time: selectedSlot.end_time,
         }),
       });
 
